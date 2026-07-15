@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#14161c"/>
+  <rect width="1200" height="6" fill="#f5a524"/>
+  <g font-family="Noto Sans CJK TC" font-weight="700" text-anchor="middle">
+    <text x="200" y="200" font-size="84" fill="#9aa1ad">软件</text>
+    <text x="330" y="190" font-size="60" fill="#f5a524">→</text>
+    <text x="470" y="200" font-size="84" fill="#f3f4f6">軟體</text>
+    <text x="700" y="200" font-size="84" fill="#9aa1ad">视频</text>
+    <text x="830" y="190" font-size="60" fill="#f5a524">→</text>
+    <text x="970" y="200" font-size="84" fill="#f3f4f6">影片</text>
+  </g>
+  <text x="92" y="380" font-family="Noto Sans CJK TC" font-weight="700" font-size="96" fill="#f3f4f6">台灣化轉換器</text>
+  <text x="92" y="460" font-family="Noto Sans CJK TC" font-size="40" fill="#9aa1ad">簡體轉台灣正體+在地用語——文字不離開瀏覽器</text>
+  <text x="92" y="560" font-family="Noto Sans CJK TC" font-size="30" fill="#6b7280">yazelin.github.io/taiwanize</text>
+</svg>
