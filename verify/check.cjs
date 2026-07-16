@@ -41,7 +41,8 @@ const { chromium, devices } = require('playwright');
   await p2.waitForFunction(() => document.getElementById('dst').value.includes('軟體'), null, { timeout: 25000 });
   const api = await p2.inputValue('#dst');
   const engine = await p2.textContent('#status');
-  const apiOk = api.includes('軟體') && api.includes('影片') && engine.includes('繁化姬') && noteShown;
+  // 引擎字串必須是「雲端詞庫」成功態——fallback 錯誤訊息也含「繁化姬」,不能拿來當通過條件
+  const apiOk = api.includes('軟體') && api.includes('影片') && engine.includes('雲端詞庫') && noteShown;
 
   // 手機
   const m = await (await browser.newContext({ ...devices['iPhone 13'] })).newPage();

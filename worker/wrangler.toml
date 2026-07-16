@@ -1,3 +1,6 @@
 name = "zhconvert-proxy"
 main = "worker.js"
 compatibility_date = "2026-06-01"
+# api.zhconvert.org 本身由 Cloudflare Worker 服務,Worker 對 Worker 的 fetch 會回 1042;
+# 此旗標讓 fetch 走公開網路正門,繞開內部路由限制。
+compatibility_flags = ["global_fetch_strictly_public"]
