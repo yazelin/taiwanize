@@ -30,12 +30,25 @@ const { chromium, devices } = require('playwright');
   const custom = await page.inputValue('#dst');
   const customOk = custom.includes('軟體服務');
 
+  // 繁化姬模式(經代理;本機測試可用 PROXY_URL 指到 stub)
+  const proxyQ = process.env.PROXY_URL ? '?proxy=' + encodeURIComponent(process.env.PROXY_URL) : '';
+  const p2 = await (await browser.newContext({ viewport: { width: 1280, height: 900 } })).newPage();
+  await p2.goto(url + proxyQ, { waitUntil: 'networkidle' });
+  await p2.waitForSelector('#status.ok', { timeout: 60000 });
+  await p2.check('#useApi');
+  const noteShown = await p2.locator('#apinote').isVisible();
+  await p2.fill('#src', '这个软件和视频都很好用');
+  await p2.waitForFunction(() => document.getElementById('dst').value.includes('軟體'), null, { timeout: 25000 });
+  const api = await p2.inputValue('#dst');
+  const engine = await p2.textContent('#status');
+  const apiOk = api.includes('軟體') && api.includes('影片') && engine.includes('繁化姬') && noteShown;
+
   // 手機
   const m = await (await browser.newContext({ ...devices['iPhone 13'] })).newPage();
   await m.goto(url, { waitUntil: 'networkidle' });
   const hscroll = await m.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
 
-  console.log(JSON.stringify({ twpOk, twOk, customOk, hscroll, sample: twp.slice(0, 30) }));
+  console.log(JSON.stringify({ twpOk, twOk, customOk, apiOk, engine, hscroll, sample: twp.slice(0, 30) }));
   await browser.close();
-  if (!twpOk || !twOk || !customOk || hscroll) process.exit(1);
+  if (!twpOk || !twOk || !customOk || !apiOk || hscroll) process.exit(1);
 })().catch((e) => { console.error(e.message); process.exit(1); });

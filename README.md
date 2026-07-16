@@ -24,6 +24,17 @@
 - 簡體 → 正體只轉字(`cn→tw`)
 - 繁體 → 簡體(`tw→cn`)
 
+## 繁化姬模式(選用)
+
+打開「繁化姬模式」開關,轉換改走[繁化姬](https://zhconvert.org)的雲端詞庫(錯字修正、網路用語、專有名詞等模組,比 OpenCC 深)。
+
+- 依繁化姬服務條款標註:**本功能使用繁化姬服務(https://zhconvert.org)**
+- 繁化姬 API 未開放瀏覽器跨域讀取,文字會經本站的 `zhconvert-proxy` Cloudflare Worker 轉送(`worker/`,白名單 converter、5 萬字上限、每分鐘 20 次限流,不儲存內容)
+- 開關打開時頁面會明示資料路徑;機密文案請關閉,走預設的本機 OpenCC
+- 繁化姬服務連不上時自動退回本機引擎
+
+Worker 部署:`cd worker && npx wrangler deploy`。
+
 ## 開發
 
 單檔 index.html。轉換引擎 [opencc-js](https://github.com/nk2028/opencc-js)(MIT)+ [OpenCC](https://github.com/BYVoid/OpenCC) 詞庫(Apache-2.0):

@@ -68,6 +68,11 @@ summary { cursor: pointer; color: var(--muted); }
 .note { color: var(--muted); font-size: .85rem; }
 #status { font-size: .85rem; color: var(--muted); }
 #status.ok { color: var(--ok); }
+#status.err { color: #c9563a; }
+label.opt { display: inline-flex; gap: 6px; align-items: center; font-size: .9rem; cursor: pointer; user-select: none; }
+label.opt input { accent-color: var(--accent); }
+#apinote { display: none; margin: 8px 0 0; }
+
 footer.site {
   border-top: 1px solid var(--line); padding: 26px 0 40px; text-align: center;
   color: var(--muted); font-size: .9rem; margin-top: 28px;
@@ -92,8 +97,11 @@ a { color: var(--accent); }
       </select>
       <button class="btn ghost" id="copy">複製結果</button>
       <button class="btn ghost" id="clear">清空</button>
+      <label class="opt"><input type="checkbox" id="useApi">繁化姬模式(進階詞庫)</label>
       <span id="status">載入詞庫中…</span>
     </div>
+    <p class="note" id="apinote">此模式會把文字經本站代理送到繁化姬伺服器處理(本功能使用
+      <a href="https://zhconvert.org" rel="noopener">繁化姬</a>服務)。機密文案請關閉,改用本機引擎。</p>
 
     <div class="cols">
       <div>
@@ -167,21 +175,65 @@ function applyCustom(text) {
   return text;
 }
 
+// 繁化姬模式:文字經代理送繁化姬(它的 API 沒開 CORS,瀏覽器讀不到,需代理)
+const PROXY = new URLSearchParams(location.search).get('proxy')
+  || 'https://zhconvert-proxy.yazelinj303.workers.dev/';
+const ZH_MAP = { twp: 'Taiwan', tw: 'Traditional', cn: 'Simplified' };
 let timer = null;
-function convert() {
-  const fn = converters[$('mode').value];
-  if (!fn) return;
-  const out = applyCustom(fn($('src').value));
+let seq = 0;
+
+function setOut(out, statusText, cls) {
   $('dst').value = out;
   $('srccnt').textContent = $('src').value.length + ' 字';
   $('dstcnt').textContent = out.length + ' 字';
-  localStorage.setItem('taiwanize-custom', $('custom').value);
+  if (statusText) { $('status').textContent = statusText; $('status').className = cls || ''; }
 }
-function debounced() { clearTimeout(timer); timer = setTimeout(convert, 250); }
+
+function localConvert(warn) {
+  const fn = converters[$('mode').value];
+  if (!fn) return;
+  setOut(applyCustom(fn($('src').value)),
+    warn || '引擎:OpenCC(本機,文字不上傳)', warn ? 'err' : 'ok');
+}
+
+async function convert() {
+  localStorage.setItem('taiwanize-custom', $('custom').value);
+  const src = $('src').value;
+  if ($('useApi').checked && src.trim()) {
+    const my = ++seq;
+    $('status').className = '';
+    $('status').textContent = '繁化姬轉換中…';
+    try {
+      const r = await fetch(PROXY, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: src, converter: ZH_MAP[$('mode').value] }),
+      });
+      const j = await r.json();
+      if (my !== seq) return; // 已有更新的輸入,丟棄過期回應
+      if (j.error) throw new Error(j.error);
+      setOut(applyCustom(j.text), '引擎:繁化姬(雲端詞庫)', 'ok');
+    } catch (e) {
+      if (my !== seq) return;
+      localConvert('繁化姬連不上(' + e.message + '),已退回本機引擎');
+    }
+    return;
+  }
+  seq++; // 使進行中的 API 回應失效
+  localConvert();
+}
+function debounced() {
+  clearTimeout(timer);
+  timer = setTimeout(convert, $('useApi').checked ? 800 : 250);
+}
 
 $('src').addEventListener('input', debounced);
 $('custom').addEventListener('input', debounced);
 $('mode').addEventListener('change', convert);
+$('useApi').addEventListener('change', () => {
+  $('apinote').style.display = $('useApi').checked ? 'block' : 'none';
+  convert();
+});
 $('clear').addEventListener('click', () => { $('src').value = ''; convert(); });
 $('copy').addEventListener('click', async () => {
   await navigator.clipboard.writeText($('dst').value);
